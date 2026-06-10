@@ -1,0 +1,2 @@
+.master-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}.summary-card{padding:20px}.summary-num{font-size:30px;font-weight:900}.summary-label{color:var(--muted);font-weight:700;margin-top:4px}.row-actions{display:flex;gap:8px}.row-actions .btn{min-height:38px;padding:8px 10px;border-radius:10px}
+@media(max-width:760px){.master-summary{grid-template-columns:1fr}.row-actions{min-width:260px}}
