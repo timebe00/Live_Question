@@ -1,0 +1,17 @@
+{
+    "apps" : [
+        {
+            "name"        : "Quest",
+            "cwd"         : "./",
+            "script"      : "./front/bin/www",
+            "watch"       : true,
+            "ignore_watch": ["node_modules"],
+            "time"        : true,
+            "instances"   : 1,
+            "exec_mode"   : "cluster",
+            "env"   : {
+                "ServiceType" : "local"
+            }
+        }
+    ]
+}
