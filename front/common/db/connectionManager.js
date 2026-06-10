@@ -1,4 +1,4 @@
-const dbConnection = require(_base + '/api/common/db/dbConnection.js');
+const dbConnection = require(_base + '/common/db/dbConnection.js');
 
 let exportObj = {};
 
