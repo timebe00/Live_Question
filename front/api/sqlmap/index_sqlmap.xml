@@ -8,4 +8,49 @@
                 and user_pw = SHA2(#{user_pw}, 256)
                 and user_role  = '99'
     </select>
+
+    <select id="index.selectMasterList">
+        select m.master_no
+             , m.title
+             , date_format(m.reg_date, '%Y-%m-%d') as reg_date
+             , count(q.question_no) as question_count
+        from tb_question_master m
+        left join tb_question q
+            on q.master_no = m.master_no
+           and q.use_yn = 'Y'
+        where m.use_yn = 'Y'
+        group by m.master_no, m.title, m.reg_date
+        order by m.reg_date desc
+    </select>
+
+    <insert id="index.insertMaster">
+        insert into tb_question_master (title, use_yn, reg_date, upd_date)
+        values (#{title}, 'Y', now(), now())
+    </insert>
+
+    <update id="index.updateMaster">
+        update tb_question_master
+           set title = #{title}
+             , upd_date = now()
+         where master_no = #{master_no}
+           and use_yn = 'Y'
+    </update>
+
+    <update id="index.deleteMaster">
+        update tb_question_master
+           set use_yn = 'N'
+             , upd_date = now()
+         where master_no = #{master_no}
+           and use_yn = 'Y'
+    </update>
+
+    <update id="index.resetAnswerByMaster">
+        update tb_answer
+           set use_yn = 'N'
+         where question_no in (
+               select question_no
+                 from tb_question
+                where master_no = #{master_no}
+           )
+    </update>
 </mapper>
