@@ -95,4 +95,35 @@ router.post('/master/reset-answers', common.verifyToken, async function(req, res
   }
 });
 
+/* GET home page. */
+router.get('/master/:master_no', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.getQuestionList(req);
+    res.render('Question', { data: result, master_no: req.params.master_no });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+router.post('/master/:master_no/questions', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.saveAllQuestions(req);
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+router.delete('/master/questions', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.deleteQuestion(req);
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
 module.exports = router;

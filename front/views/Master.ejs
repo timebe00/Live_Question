@@ -42,7 +42,7 @@
                                 <td><span class="badge blue"><%= master.question_count %>개 문제</span></td>
                                 <td><%= master.reg_date %></td>
                                 <td><div class="row-actions">
-                                  <button class="btn ghost">문제 생성</button>
+                                  <button class="btn ghost" id="createQuestion" value="<%= master.master_no %>" >문제 생성</button>
                                   <button class="btn danger resetAnswerBtn" data-master-no="<%= master.master_no %>">답안 초기화</button>
                                   <button class="btn ghost editMasterBtn" data-master-no="<%= master.master_no %>">수정</button>
                                   <button class="btn danger deleteMasterBtn" data-master-no="<%= master.master_no %>">삭제</button>
@@ -74,6 +74,10 @@
     </div>
     <script>
       $(document).ready(function() {
+        $("#createQuestion").on("click", function() {
+          location.href = "/master/" + $(this).val();
+        })
+
         $("#newMasterBtn").on("click", function() {
           $("#masterNo").val("");
           $("#masterTitle").val("");

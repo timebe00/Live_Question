@@ -23,6 +23,31 @@
         order by m.reg_date desc
     </select>
 
+    <select id="index.selectQuestionListByMaster">
+        select question_no
+             , master_no
+             , seq
+             , content
+             , answer
+        from tb_question
+        where master_no = #{master_no}
+          and use_yn = 'Y'
+        order by seq
+    </select>
+
+    <select id="index.selectQuestionItemListByMaster">
+        select i.item_no
+             , i.question_no
+             , i.content
+        from tb_question_item i
+       inner join tb_question q
+          on q.question_no = i.question_no
+        where q.master_no = #{master_no}
+          and q.use_yn = 'Y'
+          and i.use_yn = 'Y'
+        order by i.question_no, i.item_no
+    </select>
+
     <insert id="index.insertMaster">
         insert into tb_question_master (title, use_yn, reg_date, upd_date)
         values (#{title}, 'Y', now(), now())
@@ -52,5 +77,56 @@
                  from tb_question
                 where master_no = #{master_no}
            )
+    </update>
+
+    <update id="index.deleteQuestionItemsByMaster">
+        update tb_question_item i
+         inner join tb_question q
+            on q.question_no = i.question_no
+           set i.use_yn = 'N'
+         where q.master_no = #{master_no}
+           and q.use_yn = 'Y'
+           and i.use_yn = 'Y'
+    </update>
+
+    <update id="index.deleteQuestionsByMaster">
+        update tb_question
+           set use_yn = 'N'
+             , upd_date = now()
+         where master_no = #{master_no}
+           and use_yn = 'Y'
+    </update>
+
+    <insert id="index.insertQuestion">
+        insert into tb_question (master_no, seq, content, use_yn, answer, reg_user, reg_date, upd_user, upd_date)
+        values (#{master_no}, #{seq}, #{content}, 'Y', #{answer}, #{reg_user}, now(), #{reg_user}, now())
+    </insert>
+
+    <insert id="index.insertQuestionItem">
+        insert into tb_question_item (question_no, content, use_yn, reg_user)
+        values (#{question_no}, #{content}, 'Y', #{reg_user})
+    </insert>
+
+    <update id="index.deleteAnswerByQuestion">
+        update tb_answer
+           set use_yn = 'N'
+         where question_no = #{question_no}
+           and use_yn = 'Y'
+    </update>
+
+    <update id="index.deleteQuestionItemsByQuestion">
+        update tb_question_item
+           set use_yn = 'N'
+         where question_no = #{question_no}
+           and use_yn = 'Y'
+    </update>
+
+    <update id="index.deleteQuestion">
+        update tb_question
+           set use_yn = 'N'
+             , upd_date = now()
+         where question_no = #{question_no}
+           and master_no = #{master_no}
+           and use_yn = 'Y'
     </update>
 </mapper>

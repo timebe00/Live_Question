@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>문제 생성</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/question-form.css">
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/common/common.js"></script>
+</head>
+
+<body>
+    <main class="page">
+        <div class="container">
+            <header class="header">
+                <div>
+                    <h1 class="title">문제 생성 페이지</h1>
+                    <p class="subtitle">N지선다형 문제를 만들고, 드래그 앤 드랍으로 문제 순서를 변경합니다.</p>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn primary" id="saveAll">문제 전체 저장</button>
+                    <button class="btn primary" id="addQuestionBtn">새 문제 추가</button>
+                    <a class="btn ghost" href="/master">마스터 목록</a>
+                </div>
+            </header>
+            <section class="question-editor">
+                <aside class="card card-pad">
+                    <div class="toolbar">
+                        <strong>문제 목록</strong>
+                    </div>
+                    <div class="question-list" id="questionList">
+                        <div name="questionBox" class="q-list-item active">
+                            <span name="questionTitle" style="word-break: break-all;">문제를 입력해주세요.</span>
+                            <span name="optionMaxNum" class="badge">1지선다</span>
+                        </div>
+                    </div>
+                </aside>
+                <section class="card card-pad">
+                    <!-- <div id="editorEmpty">
+                        <h2 class="title">문제를 선택하거나 추가하세요.</h2>
+                    </div> -->
+                    <div id="editor_1" style="display:block">
+                        <div class="field">
+                            <label>문제</label>
+                            <input id="questionText" placeholder="문제를 입력하세요">
+                        </div>
+                        <div class="grid two">
+                            <div class="field">
+                                <label>정답 번호</label>
+                                <input id="correctAnswer" type="text" min="1" required>
+                            </div>
+                            <div class="field"><label>문항 관리</label>
+                                <button class="btn ghost" id="addOptionBtn" type="button">문항 추가</button>
+                            </div>
+                        </div>
+                        <div id="optionRows">
+                            <div name="optionBox" class="option-row">
+                                <div name="optionNum" class="option-no">1</div>
+                                <input name="option" placeholder="문항을 입력해주세요." />
+                                <button type="button" name="delOptin" class="mini-btn">문항삭제</button>
+                            </div>
+                        </div>
+                        <div class="button-row">
+                            <button class="btn danger" id="deleteQuestionBtn" type="button">현재 문제 삭제</button>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        var masterNo = <%= master_no %>;
+        var initData = <%- JSON.stringify(typeof data !== 'undefined' ? data : { questions: [] }) %>;
+        var questions = {};
+        var thsIdx = 1;
+
+        $(document).ready(function() {
+            initQuestions();
+
+            $("#saveAll").on("click", async function() {
+                syncActiveQuestion();
+
+                let questionList = [];
+                let keys = Object.keys(questions).sort(function(a, b) {
+                    return Number(a) - Number(b);
+                });
+
+                for (let i = 0; i < keys.length; i++) {
+                    let q = questions[keys[i]];
+                    questionList.push({
+                        question: q.question || "",
+                        answer: q.answer,
+                        options: q.options || []
+                    });
+                }
+
+                await common.send("/master/" + masterNo + "/questions", "POST", { questions: questionList })
+                    .then(function(response) { return response.json(); })
+                    .then(function(res) {
+                        if (res.data && res.data.success) {
+                            for (let key in questions) {
+                                questions[key].save = true;
+                            }
+                            $("div[name='questionBox']").css("background-color", "");
+                            alert("저장되었습니다.");
+                        }
+                    });
+            });
+
+            $("#addQuestionBtn").on("click", function() {
+                if($("div[name='questionBox']").length == 0) {
+                    $("#editor_1").show();
+                }
+
+                $("#optionRows").empty();
+                $("#questionText").val("");
+                $("#correctAnswer").val("");
+
+                let addIdx = Object.keys(questions).length + 1;
+
+                questions[addIdx] = {
+                    question_no : null,
+                    question : "",
+                    answer : "",
+                    options : [""],
+                    save : false
+                }
+
+                thsIdx = addIdx;
+    
+                $("div[name='questionBox']").each(function(index, questionBox) {
+                    $(questionBox).removeClass("active");
+                });
+                addList();
+                addOptin();
+            })
+    
+            $("#optionRows").on("click", "button[name='delOptin']", function() {
+                let optionIdx = $("#optionRows").find("div[name='optionBox']").index($(this).parent());
+                questions[thsIdx].options.splice(optionIdx, 1);
+
+                $(this).parent().remove();
+
+                setOptionNum();
+            })
+
+            $("#addOptionBtn").on("click", function() {
+                questions[thsIdx].options.push("");
+                addOptin();
+                setOptionNum();
+            })
+
+            $("#questionText").on("input", function() {
+                if($(this).val() == "") {
+                    $("div[name='questionBox'].active").find("span[name='questionTitle']").text("문제를 입력해주세요.");
+                    return;
+                } 
+                $("div[name='questionBox'].active").find("span[name='questionTitle']").text($(this).val());
+            })
+
+            $("#questionList").on("click", "div[name='questionBox']", function() {
+                syncActiveQuestion();
+                let idx = $("#questionList").find("div[name='questionBox']").index($(this)) + 1;
+
+                if(!questions[idx]) {
+                    return;
+                }
+
+                $("div[name='questionBox'].active").removeClass("active");
+                $(this).addClass("active");
+                loadQuestionToEditor(idx);
+            })
+
+            $("#deleteQuestionBtn").on("click", async function() {
+                if (!confirm("정말 삭제하시겠습니까?")) {
+                    return;
+                }
+
+                syncActiveQuestion();
+                let questionNo = getActiveQuestionNo();
+
+                if (questionNo) {
+                    let res = await common.send("/master/questions", "DELETE", { master_no: masterNo, question_no: questionNo })
+                        .then(function(response) { return response.json(); });
+                    if (!res.data || !res.data.success) {
+                        return;
+                    }
+                }
+
+                if($("div[name='questionBox']").length == 1) {
+                    $("div[name='questionBox'].active").remove();
+                    questions = {};
+                    thsIdx = 0;
+                    $("#editor_1").hide();
+                    return;
+                }
+                let idx = $("div[name='questionBox'].active").index() + 1;
+                let moveIdx = idx;
+                while(moveIdx < Object.keys(questions).length) {
+                    questions[moveIdx] = questions[moveIdx + 1];
+                    moveIdx += 1;
+                }
+
+                delete questions[moveIdx];
+
+                let myTeg = $("div[name='questionBox'].active");
+                let moveTeg = myTeg.prev();
+
+                myTeg.remove();
+
+                if(moveTeg.length < 1) {
+                    $("div[name='questionBox']").first().trigger("click");
+                    return;
+                }
+                moveTeg.trigger("click");
+            })
+        })
+
+
+        function initQuestions() {
+            questions = {};
+            $("#questionList").empty();
+            $("#optionRows").empty();
+
+            let serverQuestions = (initData && initData.questions) ? initData.questions : [];
+
+            if (serverQuestions.length > 0) {
+                serverQuestions.forEach(function(q, index) {
+                    let idx = index + 1;
+                    questions[idx] = {
+                        question_no: q.question_no || null,
+                        question: q.content || "",
+                        answer: q.answer || "",
+                        options: (q.items || []).map(function(item) {
+                            return item.content || "";
+                        }),
+                        save: true
+                    };
+
+                    if (questions[idx].options.length === 0) {
+                        questions[idx].options.push("");
+                    }
+                });
+
+                thsIdx = 1;
+                renderQuestionList(1);
+                loadQuestionToEditor(1);
+                $("#editor_1").show();
+                return;
+            }
+
+            questions = {
+                1: {
+                    question_no: null,
+                    question: "",
+                    answer: "",
+                    options: [""],
+                    save: true
+                }
+            };
+
+            thsIdx = 1;
+            renderQuestionList(1);
+            loadQuestionToEditor(1);
+        }
+
+        function renderQuestionList(activeIdx) {
+            let html = "";
+            let keys = Object.keys(questions).sort(function(a, b) {
+                return Number(a) - Number(b);
+            });
+
+            keys.forEach(function(key) {
+                let q = questions[key];
+                let title = q.question && q.question.trim() !== "" ? q.question : "문제를 입력해주세요.";
+                let activeClass = Number(key) === activeIdx ? " active" : "";
+                let bgStyle = q.save === false ? ' style="background-color: #fa8888"' : "";
+
+                html += '<div name="questionBox" class="q-list-item' + activeClass + '"' + bgStyle + '>';
+                html += '<span name="questionTitle" style="word-break: break-all;">' + title + '</span>';
+                html += '<span name="optionMaxNum" class="badge">' + q.options.length + '지선다</span>';
+                html += '</div>';
+            });
+
+            $("#questionList").html(html);
+        }
+
+        function loadQuestionToEditor(idx) {
+            let question = questions[idx];
+            if (!question) {
+                return;
+            }
+
+            thsIdx = idx;
+            $("#questionText").val(question.question || "");
+            $("#correctAnswer").val(question.answer || "");
+            $("#optionRows").empty();
+
+            for (let option of question.options) {
+                addOptin(option);
+            }
+
+            setOptionNum();
+        }
+
+        function addOptin(txt = "") {
+            let option = "";
+            option += '<div name="optionBox" class="option-row">';
+            option += '<div name="optionNum" class="option-no">1</div>';
+            option += '<input name="option" value="' + txt + '" placeholder="문항을 입력해주세요." />';
+            option += '<button type="button" name="delOptin" class="mini-btn">문항삭제</button>';
+            option += '</div>';
+
+            $("#optionRows").append(option);
+        }
+
+        function addList() {
+            let list = "";
+            list += '<div name="questionBox" class="q-list-item active" style="background-color: #fa8888" >';
+            list += '<span name="questionTitle" style="word-break: break-all;">문제를 입력해주세요.</span>';
+            list += '<span name="optionMaxNum" class="badge">1지선다</span>';
+            list += '</div>';
+
+            $("#questionList").append(list);
+        }
+
+        function setOptionNum() {
+            let optionLen = $("div[name='optionBox']").length;
+
+            $("div[name='optionBox']").each(function(index, optionBox) {
+                $(optionBox).find("[name='optionNum']").text(index + 1);
+            });
+
+            $("div[name='questionBox'].active").find("span[name='optionMaxNum']").text(optionLen + "지선다");
+        }
+
+        function getActiveQuestionNo() {
+            let idx = $("div[name='questionBox'].active").index() + 1;
+            if (!questions[idx]) {
+                return null;
+            }
+            return questions[idx].question_no || null;
+        }
+
+        function syncActiveQuestion() {
+            let idx = $("div[name='questionBox'].active").index() + 1;
+            if (!questions[idx]) {
+                return;
+            }
+
+            questions[idx].question = $("#questionText").val();
+            questions[idx].answer = $("#correctAnswer").val();
+            questions[idx].options = [];
+
+            $("input[name='option']").each(function() {
+                questions[idx].options.push($(this).val());
+            });
+        }
+
+        $(document).on("input", "#questionText, #correctAnswer, input[name='option']", function() {
+            let idx = $("div[name='questionBox'].active").index() + 1;
+            if(!questions[idx]) {
+                questions[idx] = {}
+                questions[idx]["options"] = []
+            }
+
+            questions[idx]["save"] = false;
+            $("div[name='questionBox'].active").css("background-color", "#fa8888");
+
+            let id = $(this).attr("id");
+            if(id == "questionText") {
+                questions[idx]["question"] = $(this).val();
+            } else if(id == "correctAnswer") {
+                questions[idx]["answer"] = $(this).val();
+            }
+
+            if(id) {
+                return;
+            }
+
+            let optionIdx = $("#optionRows").find("div[name='optionBox']").index($(this).parent());
+
+            questions[idx]["options"][optionIdx] = $(this).val();
+        })
+    </script>
+</body>
+
+</html>

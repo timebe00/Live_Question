@@ -30,6 +30,36 @@ exports.selectMasterList = (connection, sqlParamObj) => {
     )
 }
 
+exports.selectQuestionListByMaster = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.selectQuestionListByMaster', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.selectQuestionItemListByMaster = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.selectQuestionItemListByMaster', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
 exports.insertMaster = (connection, sqlParamObj) => {
     return new Promise(
         async (resolve, reject) => {
@@ -80,6 +110,112 @@ exports.resetAnswerByMaster = (connection, sqlParamObj) => {
         async (resolve, reject) => {
             try {
                 var sql = _mybatisMapper.getStatement('index', 'index.resetAnswerByMaster', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.deleteQuestionItemsByMaster = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.deleteQuestionItemsByMaster', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.deleteQuestionsByMaster = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.deleteQuestionsByMaster', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.insertQuestion = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.insertQuestion', sqlParamObj);
+                console.log(sql);
+                await connection.raw(sql);
+                let [rows] = await connection.raw("select LAST_INSERT_ID() as question_no");
+                resolve(rows[0].question_no);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.insertQuestionItem = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.insertQuestionItem', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.deleteAnswerByQuestion = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.deleteAnswerByQuestion', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.deleteQuestionItemsByQuestion = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.deleteQuestionItemsByQuestion', sqlParamObj);
+                console.log(sql);
+                let [result] = await connection.raw(sql);
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    )
+}
+
+exports.deleteQuestion = (connection, sqlParamObj) => {
+    return new Promise(
+        async (resolve, reject) => {
+            try {
+                var sql = _mybatisMapper.getStatement('index', 'index.deleteQuestion', sqlParamObj);
                 console.log(sql);
                 let [result] = await connection.raw(sql);
                 resolve(result);
