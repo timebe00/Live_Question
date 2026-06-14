@@ -37,7 +37,7 @@
                         <tbody id="masterRows">
                             <% if (masters && masters.length > 0) { %>
                               <% masters.forEach(function(master) { %>
-                              <tr class="clickable">
+                              <tr class="clickable" data-master-no="<%= master.master_no %>">
                                 <td><strong><%= master.title %></strong></td>
                                 <td><span class="badge blue"><%= master.question_count %>개 문제</span></td>
                                 <td><%= master.reg_date %></td>
@@ -74,6 +74,13 @@
     </div>
     <script>
       $(document).ready(function() {
+        $(document).on("click", "tr.clickable", function(e) {
+          if ($(e.target).closest(".row-actions").length) {
+            return;
+          }
+          location.href = "/master/show/" + $(this).data("master-no") + "/0";
+        });
+
         $("#createQuestion").on("click", function() {
           location.href = "/master/" + $(this).val();
         })

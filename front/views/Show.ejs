@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>문제 출력</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/present.css">
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/common/common.js"></script>
+    <script src="/js/qrcode.min.js"></script>
+</head>
+<%
+console.log("data : ", data)
+console.log("item : ", data.question.items)
+%>
+<body>
+    <main class="page presentation">
+        <div class="container">
+            <header class="header">
+                <div class="nav-actions">
+                    <a class="btn ghost" href="/master">마스터 목록</a>
+                    <button class="btn success" id="resultBtn">상황 보기</button>
+                    <button class="btn primary" id="qrBtn">QR 보기</button>
+                </div>
+            </header>
+            <section class="card card-pad stage-card" id="stage">
+                <div class="question-meta"><span class="badge blue" id="qCount"><%=data.question.seq%> / <%=data.question_count%></span><span
+                        class="badge green"><%=data.question.items.length%>지선다</span></div>
+                <h2 class="big-question" id="qTitle"><%=data.question.content%></h2>
+                <div class="present-options" id="options">
+                    <%let idx=0; for(item of data.question.items){ ++idx%>
+                        <div class="answer-item">
+                            <div class="answer-index"><%=idx%></div>
+                            <div class="answer-text"><%=item.content%></div>
+                        </div>
+                    <%}%>
+                </div>
+                <div class="pager">
+                    <button class="btn ghost" id="prevBtn">이전 문제</button>
+                    <button class="btn ghost" id="nextBtn">다음 문제</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    <div class="modal" id="qrModal">
+        <div class="modal-panel qr-box">
+            <div class="modal-head" style="width:100%">
+                <h2>참여자 접속 QR</h2>
+                <button class="close" onclick="common.closeModal('qrModal')">×</button>
+            </div>
+            <div id="setQR"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $("#prevBtn").on("click", function() {
+                if(!"<%=data.prev_question_no%>") {
+                    alert("처음 문제입니다.");
+                    return;
+                }
+
+                location.href = "/master/show/<%=data.question.master_no%>/<%=data.prev_question_no%>"
+            })
+
+            $("#nextBtn").on("click", function() {
+                if(!"<%=data.next_question_no%>") {
+                    alert("마지막 문제입니다.");
+                    return;
+                }
+
+                location.href = "/master/show/<%=data.question.master_no%>/<%=data.next_question_no%>"
+            })
+
+            $("#resultBtn").on("click", function() {
+                location.href = "/master/show_list/<%=data.question.master_no%>/<%=data.question.question_no%>"
+            })
+            
+            $("#qrBtn").on("click", function() {
+                $("#setQR").empty();
+                common.openModal("qrModal");
+
+                //  var link = "https://www.naver.com/";
+                var link = location.origin + "/answer/<%=data.question.master_no%>/<%=data.question.question_no%>";
+                // QR 코드 생성 (520x520 사이즈)
+                QRCode.toDataURL(link, { width: 520 }, function (err, url) {
+                    var img = document.createElement("img");
+                    img.src = url;
+                    document.getElementById("setQR").appendChild(img);
+                });
+            })
+        })
+    </script>
+</body>
+
+</html>

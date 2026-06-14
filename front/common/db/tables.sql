@@ -68,6 +68,7 @@ CREATE TABLE tb_question_item (
 CREATE TABLE tb_answer (
     answer_no BIGINT AUTO_INCREMENT PRIMARY key COMMENT '답안 번호',
     question_no BIGINT NOT null COMMENT '문제 번호',
+    item_no BIGINT NOT null COMMENT '문제 문항 번호',
     uuid VARCHAR(50) NOT null COMMENT '입력자 uuid',
     answer TEXT COMMENT '입력 답안',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',

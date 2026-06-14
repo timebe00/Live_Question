@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>문제 풀이</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/solve.css">
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/common/common.js"></script>
+</head>
+
+<body>
+    <main class="solve-page">
+        <div class="solve-wrap">
+            <section class="card solve-card">
+                <h1 class="solve-question" id="solveQuestion"><%=data.question.content%></h1>
+                <div id="solveOptions">
+                    <%let idx=0; for(item of data.question.items){ ++idx%>
+                    <label class="choice"><input type="radio" name="answer" value="<%=item.item_no%>"><span><b><%=idx%></b> <%=item.content%></span></label>
+                    <%}%>
+                </div>
+                <button class="btn primary submit-full" type="button" id="submitBtn">제출하기</button>
+            </section>
+        </div>
+    </main>
+    <script>
+        $(document).ready(function() {
+            $("#submitBtn").on("click", async function() {
+                let selected = $("input[name='answer']:checked");
+                if (!selected.length) {
+                    alert("답안을 선택해주세요.");
+                    return;
+                }
+
+                if(confirm("제출하시겠습니까?")) {
+                    await common.send("/answer", "POST", {
+                        question_no: "<%=data.question.question_no%>",
+                        item_no: selected.val()
+                    })
+                    .then((response) => response.json())
+                    .then((res) => {
+                        if (res.data && res.data.success) {
+                            location.href = "/sendAnswer";
+                        }
+                    });
+                }
+            });
+        })
+    </script>
+</body>
+</html>

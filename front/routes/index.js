@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const crypto = require('crypto');
 
 const indexService = require(_base + "/api/service/index_service.js");
 const common = require(_base + "/common/common.js");
@@ -120,6 +121,82 @@ router.delete('/master/questions', common.verifyToken, async function(req, res, 
   try {
     let result = await indexService.deleteQuestion(req);
     res.json({ data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+/* GET home page. */
+router.get('/master/show/:master_no/:question_no', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.getShowQuestion(req);
+    res.render('Show', { data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+/* GET home page. */
+router.get('/master/show_list/:master_no/:question_no', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.getShowQuestion(req);
+    let cnt = await indexService.getShowQuestionResult(req);
+    res.render('ShowList', { data: result, cnt: cnt });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+router.get('/master/show_list/:master_no/:question_no/result', common.verifyToken, async function(req, res, next) {
+  try {
+    let result = await indexService.getShowQuestionResult(req);
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+/* GET home page. */
+router.get('/answer/:master_no/:question_no', async function(req, res, next) {
+  try {
+    if (!req.cookies.user) {
+      req.cookies.user = crypto.randomUUID();
+      res.cookie('user', req.cookies.user, {
+        maxAge: 24 * 60 * 60 * 1000,
+        path: '/'
+      });
+    }
+
+    let result = await indexService.getAnswerPage(req);
+    if (result.alreadyAnswered) {
+      return res.redirect('/sendAnswer');
+    }
+
+    res.render('Answer', { data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+router.post('/answer', async function(req, res, next) {
+  try {
+    let result = await indexService.saveAnswer(req);
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error)
+    next(error);
+  }
+});
+
+/* GET home page. */
+router.get('/sendAnswer', async function(req, res, next) {
+  try {
+    res.render('SendAnswer');
   } catch (error) {
     console.log("error", error)
     next(error);

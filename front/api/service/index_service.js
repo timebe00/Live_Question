@@ -249,6 +249,220 @@ exports.saveAllQuestions = (req) => {
     });
 };
 
+exports.getShowQuestion = (req) => {
+    return new Promise(async (resolve, reject) => {
+        let connection;
+        try {
+            let master_no = req.params.master_no;
+            let question_no = Number(req.params.question_no) || 0;
+
+            if (!master_no) {
+                throw new Error('마스터 번호가 없습니다.');
+            }
+
+            connection = await connectionManager.getConnection({ readOnly: true });
+
+            let questions;
+            if (question_no === 0) {
+                questions = await indexModule.selectFirstQuestionByMaster(connection, { master_no: master_no });
+            } else {
+                questions = await indexModule.selectQuestionByMasterAndNo(connection, {
+                    master_no: master_no,
+                    question_no: question_no
+                });
+            }
+
+            let question = questions[0];
+            if (!question) {
+                throw new Error('문제를 찾을 수 없습니다.');
+            }
+
+            question.items = await indexModule.selectQuestionItemListByQuestion(connection, {
+                question_no: question.question_no
+            });
+
+            let [countRow] = await indexModule.selectQuestionCountByMaster(connection, { master_no: master_no });
+
+            let [prevRow] = await indexModule.selectPrevQuestionNoByMaster(connection, {
+                master_no: master_no,
+                seq: question.seq
+            });
+            let [nextRow] = await indexModule.selectNextQuestionNoByMaster(connection, {
+                master_no: master_no,
+                seq: question.seq
+            });
+
+            resolve({
+                question: question,
+                question_count: countRow ? countRow.question_count : 0,
+                prev_question_no: prevRow ? prevRow.question_no : null,
+                next_question_no: nextRow ? nextRow.question_no : null
+            });
+        } catch (error) {
+            console.log("getShowQuestion : ", error);
+            reject(error);
+        }
+    });
+};
+
+exports.getShowQuestionResult = (req) => {
+    return new Promise(async (resolve, reject) => {
+        let connection;
+        try {
+            let question_no = req.params.question_no;
+
+            if (!question_no) {
+                throw new Error('질문 번호가 없습니다.');
+            }
+
+            connection = await connectionManager.getConnection({ readOnly: true });
+
+            let items = await indexModule.selectAnswerCountByQuestion(connection, {
+                question_no: question_no
+            });
+
+            let totalCount = 0; 
+            for(let item of items) { 
+                totalCount += Number(item.answer_cnt); 
+            }
+
+            resolve({
+                items: items,
+                total_count: totalCount
+            });
+        } catch (error) {
+            console.log("getShowQuestionResult : ", error);
+            reject(error);
+        }
+    });
+};
+
+exports.getAnswerPage = (req) => {
+    return new Promise(async (resolve, reject) => {
+        let connection;
+        try {
+            let master_no = req.params.master_no;
+            let question_no = Number(req.params.question_no) || 0;
+            let uuid = req.cookies.user;
+
+            if (!master_no) {
+                throw new Error('마스터 번호가 없습니다.');
+            }
+
+            if (!uuid) {
+                throw new Error('사용자 정보가 없습니다.');
+            }
+
+            connection = await connectionManager.getConnection({ readOnly: true });
+
+            let questions;
+            if (question_no === 0) {
+                questions = await indexModule.selectFirstQuestionByMaster(connection, { master_no: master_no });
+            } else {
+                questions = await indexModule.selectQuestionByMasterAndNo(connection, {
+                    master_no: master_no,
+                    question_no: question_no
+                });
+            }
+
+            let question = questions[0];
+            if (!question) {
+                throw new Error('문제를 찾을 수 없습니다.');
+            }
+
+            let [answerRow] = await indexModule.selectAnswerByQuestionAndUuid(connection, {
+                question_no: question.question_no,
+                uuid: uuid
+            });
+
+            if (answerRow && answerRow.answer_no) {
+                resolve({ alreadyAnswered: true });
+                return;
+            }
+
+            question.items = await indexModule.selectQuestionItemListByQuestion(connection, {
+                question_no: question.question_no
+            });
+            delete question.answer;
+
+            resolve({
+                alreadyAnswered: false,
+                question: question
+            });
+        } catch (error) {
+            console.log("getAnswerPage : ", error);
+            reject(error);
+        }
+    });
+};
+
+exports.saveAnswer = (req) => {
+    return new Promise(async (resolve, reject) => {
+        let connection;
+        try {
+            let uuid = req.cookies.user;
+            let question_no = req.body.question_no;
+            let item_no = req.body.item_no;
+
+            if (!uuid) {
+                throw new Error('사용자 정보가 없습니다.');
+            }
+
+            if (!question_no) {
+                throw new Error('문제 번호가 없습니다.');
+            }
+
+            if (!item_no) {
+                throw new Error('답안을 선택해주세요.');
+            }
+
+            connection = await connectionManager.getConnection({ readOnly: false });
+
+            let [answerRow] = await indexModule.selectAnswerByQuestionAndUuid(connection, {
+                question_no: question_no,
+                uuid: uuid
+            });
+
+            if (answerRow && answerRow.answer_no) {
+                throw new Error('이미 답안을 제출했습니다.');
+            }
+
+            let items = await indexModule.selectQuestionItemListByQuestion(connection, {
+                question_no: question_no
+            });
+            let selectedItem = items.find(function (item) {
+                return String(item.item_no) === String(item_no);
+            });
+
+            if (!selectedItem) {
+                throw new Error('선택한 문항을 찾을 수 없습니다.');
+            }
+
+            await indexModule.insertAnswer(connection, {
+                question_no: question_no,
+                item_no: item_no,
+                uuid: uuid,
+                answer: String(item_no)
+            });
+
+            await connection.commit();
+            resolve({ success: true });
+        } catch (error) {
+            if (connection) {
+                await connection.rollback();
+            }
+            console.log("saveAnswer : ", error);
+            reject(error);
+        }
+    });
+};
+
+exports.getSendAnswerPage = (req) => {
+    return new Promise(async (resolve, reject) => {
+        resolve({});
+    });
+};
+
 exports.deleteQuestion = (req) => {
     return new Promise(async (resolve, reject) => {
         let connection;

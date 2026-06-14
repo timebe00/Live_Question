@@ -48,6 +48,120 @@
         order by i.question_no, i.item_no
     </select>
 
+    <select id="index.selectQuestionCountByMaster">
+        select count(*) as question_count
+        from tb_question
+        where master_no = #{master_no}
+          and use_yn = 'Y'
+    </select>
+
+    <select id="index.selectQuestionByMasterAndNo">
+        select question_no
+             , master_no
+             , seq
+             , content
+             , answer
+        from tb_question
+        where master_no = #{master_no}
+          and question_no = #{question_no}
+          and use_yn = 'Y'
+    </select>
+
+    <select id="index.selectFirstQuestionByMaster">
+        select question_no
+             , master_no
+             , seq
+             , content
+             , answer
+        from tb_question
+        where master_no = #{master_no}
+          and use_yn = 'Y'
+        order by seq
+        limit 1
+    </select>
+
+    <select id="index.selectQuestionItemListByQuestion">
+        select item_no
+             , question_no
+             , content
+        from tb_question_item
+        where question_no = #{question_no}
+          and use_yn = 'Y'
+        order by item_no
+    </select>
+
+    <select id="index.selectPrevQuestionNoByMaster">
+        select question_no
+        from tb_question
+        where master_no = #{master_no}
+          and use_yn = 'Y'
+          and seq <![CDATA[<]]> #{seq}
+        order by seq desc
+        limit 1
+    </select>
+
+    <select id="index.selectNextQuestionNoByMaster">
+        select question_no
+        from tb_question
+        where master_no = #{master_no}
+          and use_yn = 'Y'
+          and seq <![CDATA[>]]> #{seq}
+        order by seq
+        limit 1
+    </select>
+
+    <select id="index.selectAnswerCountByQuestion">
+        select item.item_no, count(ans.answer_no) answer_cnt
+        from tb_question_item item
+        left join tb_answer ans on item.question_no = ans.question_no and item.item_no = ans.item_no and ans.use_yn = 'Y'
+        where item.question_no = #{question_no}
+        and item.use_yn = 'Y'
+        group by item.item_no
+    </select>
+
+    <select id="index.selectAnswerTotalCountByQuestion">
+        select count(distinct uuid) as total_count
+        from tb_answer
+        where question_no = #{question_no}
+          and use_yn = 'Y'
+    </select>
+
+    <select id="index.selectAnswerByQuestionAndUuid">
+        select answer_no
+             , item_no
+        from tb_answer
+        where question_no = #{question_no}
+          and uuid = #{uuid}
+          and use_yn = 'Y'
+        limit 1
+    </select>
+
+    <select id="index.selectLatestAnswerByUuid">
+        select ans.answer_no
+             , ans.question_no
+             , ans.item_no
+             , ans.answer
+             , item.content as item_content
+             , q.content as question_content
+        from tb_answer ans
+        inner join tb_question_item item
+            on item.item_no = ans.item_no
+           and item.question_no = ans.question_no
+           and item.use_yn = 'Y'
+        inner join tb_question q
+            on q.question_no = ans.question_no
+           and q.use_yn = 'Y'
+        where ans.uuid = #{uuid}
+          and ans.use_yn = 'Y'
+        order by ans.reg_date desc
+        limit 1
+    </select>
+
+    <insert id="index.insertAnswer">
+        insert into tb_answer (question_no, item_no, uuid, answer, use_yn, reg_date)
+        values (#{question_no}, #{item_no}, #{uuid}, #{answer}, 'Y', now())
+    </insert>
+
     <insert id="index.insertMaster">
         insert into tb_question_master (title, use_yn, reg_date, upd_date)
         values (#{title}, 'Y', now(), now())

@@ -1,1 +1,47 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>문제 출력</title><link rel="stylesheet" href="css/common.css"><link rel="stylesheet" href="css/present.css"></head><body><main class="page presentation"><div class="container"><header class="header"><div><div class="brand"><span class="brand-mark"></span><span id="masterName">문제 마스터</span></div><h1 class="title">문제 출력 페이지</h1><p class="subtitle">발표 화면에 띄워도 멀리서 잘 보이도록 큰 글자와 넓은 간격으로 구성했습니다.</p></div><div class="nav-actions"><a class="btn ghost" href="master.html">마스터 목록</a><button class="btn success" id="resultBtn">상황 보기</button><button class="btn primary" id="qrBtn">QR 보기</button></div></header><section class="card card-pad stage-card" id="stage"><div class="question-meta"><span class="badge blue" id="qCount">1 / 1</span><span class="badge green">N지선다</span></div><h2 class="big-question" id="qTitle"></h2><div class="present-options" id="options"></div><div class="pager"><button class="btn ghost" id="prevBtn">이전 문제</button><button class="btn ghost" id="nextBtn">다음 문제</button></div></section></div></main><div class="modal" id="qrModal"><div class="modal-panel qr-box"><div class="modal-head" style="width:100%"><h2>참여자 접속 QR</h2><button class="close" onclick="closeModal('qrModal')">×</button></div><canvas class="fake-qr" id="qrCanvas" width="520" height="520"></canvas><div class="qr-url" id="qrLink"></div><a class="btn primary" id="openSolve" onclick="location.href=document.getElementById('qrLink').textContent">사용자 풀이 페이지 열기</a></div></div><script src="js/app.js"></script><script src="js/present.js"></script></body></html>
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>문제 출력</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/present.css">
+</head>
+
+<body>
+    <main class="page presentation">
+        <div class="container">
+            <header class="header">
+                <div>
+                    <div class="brand"><span class="brand-mark"></span><span id="masterName">문제 마스터</span></div>
+                    <h1 class="title">문제 출력 페이지</h1>
+                    <p class="subtitle">발표 화면에 띄워도 멀리서 잘 보이도록 큰 글자와 넓은 간격으로 구성했습니다.</p>
+                </div>
+                <div class="nav-actions"><a class="btn ghost" href="master.html">마스터 목록</a><button class="btn success"
+                        id="resultBtn">상황 보기</button><button class="btn primary" id="qrBtn">QR 보기</button></div>
+            </header>
+            <section class="card card-pad stage-card" id="stage">
+                <div class="question-meta"><span class="badge blue" id="qCount">1 / 1</span><span
+                        class="badge green">N지선다</span></div>
+                <h2 class="big-question" id="qTitle"></h2>
+                <div class="present-options" id="options"></div>
+                <div class="pager"><button class="btn ghost" id="prevBtn">이전 문제</button><button class="btn ghost"
+                        id="nextBtn">다음 문제</button></div>
+            </section>
+        </div>
+    </main>
+    <div class="modal" id="qrModal">
+        <div class="modal-panel qr-box">
+            <div class="modal-head" style="width:100%">
+                <h2>참여자 접속 QR</h2><button class="close" onclick="closeModal('qrModal')">×</button>
+            </div><canvas class="fake-qr" id="qrCanvas" width="520" height="520"></canvas>
+            <div class="qr-url" id="qrLink"></div><a class="btn primary" id="openSolve"
+                onclick="location.href=document.getElementById('qrLink').textContent">사용자 풀이 페이지 열기</a>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/present.js"></script>
+</body>
+
+</html>
