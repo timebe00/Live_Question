@@ -23,6 +23,7 @@ console.log("item : ", data.question.items)
                 <div class="nav-actions">
                     <a class="btn ghost" href="/master">마스터 목록</a>
                     <button class="btn success" id="resultBtn">상황 보기</button>
+                    <button class="btn ghost" id="toggleQrBtn">QR 가리기</button>
                     <button class="btn primary" id="qrBtn">QR 보기</button>
                 </div>
             </header>
@@ -87,7 +88,7 @@ console.log("item : ", data.question.items)
 
             var link = location.origin + "/answer/<%=data.question.master_no%>/<%=data.question.question_no%>";
 
-            QRCode.toDataURL(link, { width: 480 }, function (err, url) {
+            QRCode.toDataURL(link, { width: 540 }, function (err, url) {
                 var img = document.createElement("img");
                 img.src = url;
                 img.alt = "참여 QR";
@@ -103,6 +104,12 @@ console.log("item : ", data.question.items)
                     img.src = url;
                     document.getElementById("setQR").appendChild(img);
                 });
+            });
+
+            $("#toggleQrBtn").on("click", function() {
+                var $layout = $(".show-layout");
+                var hidden = $layout.toggleClass("qr-hidden").hasClass("qr-hidden");
+                $(this).text(hidden ? "QR 보이기" : "QR 가리기");
             });
         })
     </script>
