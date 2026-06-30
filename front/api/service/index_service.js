@@ -457,12 +457,6 @@ exports.saveAnswer = (req) => {
     });
 };
 
-exports.getSendAnswerPage = (req) => {
-    return new Promise(async (resolve, reject) => {
-        resolve({});
-    });
-};
-
 exports.deleteQuestion = (req) => {
     return new Promise(async (resolve, reject) => {
         let connection;

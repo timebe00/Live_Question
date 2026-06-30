@@ -124,6 +124,10 @@ console.log("cnt : ", cnt)
                 $("#answerBox").addClass("show");
             })
 
+            $("#presentBtn").on("click", function() {
+                location.href = "/master/show/<%=data.question.master_no%>/<%=data.question.question_no%>";
+            })
+
             $("#prevBtn").on("click", function() {
                 if(!"<%=data.prev_question_no%>") {
                     alert("처음 문제입니다.");
